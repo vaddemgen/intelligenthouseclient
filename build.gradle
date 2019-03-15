@@ -1,0 +1,29 @@
+plugins {
+    id 'java'
+}
+
+group 'com.vaddemgen'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+jar {
+    manifest {
+        attributes(
+            'Main-Class': 'com.vaddemgen.intelligenthouseclient.Application'
+        )
+    }
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // https://mvnrepository.com/artifact/com.pi4j/pi4j-core
+    compile group: 'com.pi4j', name: 'pi4j-core', version: '1.2'
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
