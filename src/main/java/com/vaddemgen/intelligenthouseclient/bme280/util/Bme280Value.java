@@ -1,13 +1,17 @@
-package com.vaddemgen.intelligenthouseclient;
+package com.vaddemgen.intelligenthouseclient.bme280.util;
 
-class Bme280Value {
+import java.io.Serializable;
+
+public class Bme280Value implements Serializable {
+
+    private static final long serialVersionUID = 9114717449881108052L;
 
     private final double cTemp;
     private final double fTemp;
     private final double pressure;
     private final double humidity;
 
-    Bme280Value(double cTemp, double fTemp, double pressure, double humidity) {
+    public Bme280Value(double cTemp, double fTemp, double pressure, double humidity) {
 
         this.cTemp = cTemp;
         this.fTemp = fTemp;
@@ -35,11 +39,9 @@ class Bme280Value {
     public String toString() {
 
         // Output data to screen
-        return "Bme280Value{" +
-            String.format("Temperature in Celsius : %.2f C %n", cTemp) +
-            String.format("Temperature in Fahrenheit : %.2f F %n", fTemp) +
-            String.format("Pressure : %.2f hPa %n", pressure) +
-            String.format("Relative Humidity : %.2f %% RH %n", humidity) +
-            '}';
+        return String.format("Temperature in Celsius : %.2f C, ", cTemp) +
+            String.format("Temperature in Fahrenheit : %.2f F, ", fTemp) +
+            String.format("Pressure : %.2f hPa, ", pressure) +
+            String.format("Relative Humidity : %.2f %% RH", humidity);
     }
 }
