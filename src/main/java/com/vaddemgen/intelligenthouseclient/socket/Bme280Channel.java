@@ -16,45 +16,45 @@ import org.slf4j.LoggerFactory;
 
 class Bme280Channel implements Callable<Void> {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(Bme280Channel.class);
+  private final static Logger LOGGER = LoggerFactory.getLogger(Bme280Channel.class);
 
-    private Socket client;
-    private Bme280Service bme280Service;
+  private Socket client;
+  private Bme280Service bme280Service;
 
-    Bme280Channel(Socket client, Bme280Service bme280Service) {
-        this.client = client;
-        this.bme280Service = bme280Service;
-    }
+  Bme280Channel(Socket client, Bme280Service bme280Service) {
+    this.client = client;
+    this.bme280Service = bme280Service;
+  }
 
-    @Override
-    public Void call() throws IOException {
-        PrintWriter writer = new PrintWriter(client.getOutputStream(), true);
+  @Override
+  public Void call() throws IOException {
+    PrintWriter writer = new PrintWriter(client.getOutputStream(), true);
 
-        Gson gson = new GsonBuilder()
-            .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-            .create();
+    Gson gson = new GsonBuilder()
+        .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+        .create();
 
-        LinkedList<Consumer<Bme280Value>> list = new LinkedList<>();
+    LinkedList<Consumer<Bme280Value>> list = new LinkedList<>();
 
-        list.add(value -> {
-            if (!client.isClosed() && !writer.checkError()) {
-                writer.println(gson.toJson(value));
-            } else {
-                LOGGER.info("BME280_CHANNEL: The client '{}' was closed",
-                    client.getRemoteSocketAddress());
+    list.add(value -> {
+      if (!client.isClosed() && !writer.checkError()) {
+        writer.println(gson.toJson(value));
+      } else {
+        LOGGER.info("BME280_CHANNEL: The client '{}' was closed",
+            client.getRemoteSocketAddress());
 
-                bme280Service.unsubscribe(list.getFirst());
-                try {
-                    writer.close();
-                    client.close();
-                } catch (IOException e) {
-                    LOGGER.info(e.getMessage(), e);
-                }
-            }
-        });
+        bme280Service.unsubscribe(list.getFirst());
+        try {
+          writer.close();
+          client.close();
+        } catch (IOException e) {
+          LOGGER.info(e.getMessage(), e);
+        }
+      }
+    });
 
-        bme280Service.subscribe(list.getFirst());
+    bme280Service.subscribe(list.getFirst());
 
-        return null;
-    }
+    return null;
+  }
 }

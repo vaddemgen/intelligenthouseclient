@@ -13,53 +13,53 @@ import org.slf4j.LoggerFactory;
 
 public final class IntelligentHouseClientSocketServer {
 
-    private final static Logger LOGGER = LoggerFactory
-        .getLogger(IntelligentHouseClientSocketServer.class);
+  private final static Logger LOGGER = LoggerFactory
+      .getLogger(IntelligentHouseClientSocketServer.class);
 
-    private static ServerSocket serverSocket;
-    private static ExecutorService executorService;
-    private static Bme280Service bme280Service;
+  private static ServerSocket serverSocket;
+  private static ExecutorService executorService;
+  private static Bme280Service bme280Service;
 
-    /**
-     * Don't let anyone to instantiate this class.
-     */
-    private IntelligentHouseClientSocketServer() {
+  /**
+   * Don't let anyone to instantiate this class.
+   */
+  private IntelligentHouseClientSocketServer() {
+  }
+
+  public static void start(int port)
+      throws IOException, UnsupportedBusNumberException, PlatformAlreadyAssignedException {
+    bme280Service = Bme280Service.startService();
+    serverSocket = new ServerSocket(port);
+    executorService = Executors.newCachedThreadPool();
+
+    LOGGER.info("SOCKET_SERVER: The socket server started at port {}", port);
+
+    executorService.submit(() -> {
+      //noinspection InfiniteLoopStatement
+      while (true) {
+        Socket clientSocket = serverSocket.accept();
+
+        LOGGER.info("SOCKET_SERVER: Caught a client {}",
+            clientSocket.getRemoteSocketAddress());
+
+        executorService.submit(new Bme280Channel(clientSocket, bme280Service));
+      }
+    });
+  }
+
+  public static void stop() throws IOException {
+
+    if (executorService != null) {
+      executorService.shutdownNow();
+      LOGGER.info("SOCKET_SERVER: executor service stopped");
     }
-
-    public static void start(int port)
-        throws IOException, UnsupportedBusNumberException, PlatformAlreadyAssignedException {
-        bme280Service = Bme280Service.startService();
-        serverSocket = new ServerSocket(port);
-        executorService = Executors.newCachedThreadPool();
-
-        LOGGER.info("SOCKET_SERVER: The socket server started at port {}", port);
-
-        executorService.submit(() -> {
-            //noinspection InfiniteLoopStatement
-            while (true) {
-                Socket clientSocket = serverSocket.accept();
-
-                LOGGER.info("SOCKET_SERVER: Caught a client {}",
-                    clientSocket.getRemoteSocketAddress());
-
-                executorService.submit(new Bme280Channel(clientSocket, bme280Service));
-            }
-        });
+    if (serverSocket != null) {
+      serverSocket.close();
+      LOGGER.info("SOCKET_SERVER: sockets was closed");
     }
-
-    public static void stop() throws IOException {
-
-        if (executorService != null) {
-            executorService.shutdownNow();
-            LOGGER.info("SOCKET_SERVER: executor service stopped");
-        }
-        if (serverSocket != null) {
-            serverSocket.close();
-            LOGGER.info("SOCKET_SERVER: sockets was closed");
-        }
-        if (bme280Service != null) {
-            bme280Service.stopService();
-            LOGGER.info("SOCKET_SERVER: Stopped BME280 Service");
-        }
+    if (bme280Service != null) {
+      bme280Service.stopService();
+      LOGGER.info("SOCKET_SERVER: Stopped BME280 Service");
     }
+  }
 }
