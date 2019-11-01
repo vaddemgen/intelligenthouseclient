@@ -23,7 +23,7 @@ public final class Application {
       LOGGER.error(e.getMessage(), e);
 
       try {
-        IntelligentHouseClientSocketServer.stop();
+        IntelligentHouseClientSocketServer.shutdownAndAwaitTermination();
       } catch (IOException e2) {
         LOGGER.error(e2.getMessage(), e2);
       }

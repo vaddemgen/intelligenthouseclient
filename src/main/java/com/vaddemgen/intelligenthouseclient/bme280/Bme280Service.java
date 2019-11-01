@@ -13,6 +13,7 @@ import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -196,7 +197,7 @@ public final class Bme280Service {
         try {
           Thread.sleep(60000);
         } catch (InterruptedException e) {
-          LOGGER.error(e.getMessage(), e);
+          LOGGER.trace("BME280_SERVICE: Interrupted.");
         }
       }
     });
@@ -204,8 +205,38 @@ public final class Bme280Service {
     return this;
   }
 
-  public void stopService() {
+  public void shutdownServiceAndAwaitTermination() {
+    executorService.shutdown();
+    LOGGER.warn("BME280_SERVICE: "
+        + "Awaiting service termination up to 2 minutes.");
+    try {
+      if (!executorService.awaitTermination(1, TimeUnit.MINUTES)) {
+        shutdownNowServiceAndAwaitTermination();
+      }
+    } catch (InterruptedException e) {
+      shutdownNowServiceAndAwaitTermination();
+      Thread.currentThread().interrupt();
+    }
+  }
+
+  private void shutdownNowServiceAndAwaitTermination() {
     executorService.shutdownNow();
+    try {
+      if (!executorService.awaitTermination(1, TimeUnit.MINUTES)) {
+        LOGGER.warn("BME280_SERVICE: "
+            + "The executor service didn't terminate.");
+      } else {
+        LOGGER.info("BME280_SERVICE: Stopped.");
+      }
+    } catch (InterruptedException e) {
+      subscribers.clear();
+      subscribers = null;
+      LOGGER.warn("BME280_SERVICE: "
+          + "The executor service didn't terminate.", e);
+      Thread.currentThread().interrupt();
+    }
+    subscribers.clear();
+    subscribers = null;
   }
 
   public void unsubscribe(Consumer<Bme280Value> subscriber) {
