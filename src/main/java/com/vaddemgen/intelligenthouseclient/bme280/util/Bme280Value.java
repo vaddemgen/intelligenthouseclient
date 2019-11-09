@@ -19,11 +19,11 @@ public class Bme280Value implements Serializable {
     this.humidity = humidity;
   }
 
-  public double getcTemp() {
+  public double getCTemp() {
     return cTemp;
   }
 
-  public double getfTemp() {
+  public double getFTemp() {
     return fTemp;
   }
 

@@ -9,6 +9,7 @@ import com.pi4j.platform.PlatformAlreadyAssignedException;
 import com.pi4j.platform.PlatformManager;
 import com.vaddemgen.intelligenthouseclient.bme280.util.Bme280Value;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -20,7 +21,8 @@ import org.slf4j.LoggerFactory;
 
 public final class Bme280Service {
 
-  private final static Logger LOGGER = LoggerFactory.getLogger(Bme280Service.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(Bme280Service.class);
+  private static final Duration WAITING_TIME = Duration.ofMinutes(1);
 
   private I2CDevice i2CDevice;
 
@@ -186,7 +188,7 @@ public final class Bme280Service {
         if (!subscribers.isEmpty()) {
           try {
             Bme280Value bme280Value = readBme280Value(i2CDevice);
-            LOGGER.info("BME280_SERVICE: {}", bme280Value);
+            LOGGER.trace("BME280_SERVICE: {}", bme280Value);
             subscribers.forEach(s -> s.accept(bme280Value));
           } catch (IOException e) {
             LOGGER.error("BME280_SERVICE: Failed to read value", e);
@@ -195,7 +197,7 @@ public final class Bme280Service {
           LOGGER.info("BME280_SERVICE: No subscribers");
         }
         try {
-          Thread.sleep(60000);
+          Thread.sleep(WAITING_TIME.toMillis());
         } catch (InterruptedException e) {
           LOGGER.trace("BME280_SERVICE: Interrupted.");
         }

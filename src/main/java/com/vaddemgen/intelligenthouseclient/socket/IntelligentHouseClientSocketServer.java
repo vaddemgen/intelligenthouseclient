@@ -37,6 +37,8 @@ public final class IntelligentHouseClientSocketServer {
 
     LOGGER.info("SOCKET_SERVER: The socket server started at port {}", port);
 
+    initBme280Logger(bme280Service);
+
     executorService.submit(() -> {
       try {
         //noinspection InfiniteLoopStatement
@@ -53,6 +55,20 @@ public final class IntelligentHouseClientSocketServer {
         executorService.shutdown();
       }
     });
+  }
+
+  private static void initBme280Logger(Bme280Service bme280Service) {
+    bme280Service.subscribe(value -> LOGGER.info(
+        "\nBME 280 DATA:\n"
+            + " - Temperature in Celsius : {},\n"
+            + " - Temperature in Fahrenheit : {},\n"
+            + " - Pressure : {},\n"
+            + " - Relative Humidity : {}",
+        String.format("%.2f C", value.getCTemp()),
+        String.format("%.2f F", value.getFTemp()),
+        String.format("%.2f hPa", value.getPressure()),
+        String.format("%.2f %% RH", value.getHumidity())
+    ));
   }
 
   public static void shutdownAndAwaitTermination() throws IOException {

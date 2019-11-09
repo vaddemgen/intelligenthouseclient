@@ -31,5 +31,4 @@ public final class Application {
       System.exit(-1);
     }
   }
-
 }
