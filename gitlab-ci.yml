@@ -1,0 +1,32 @@
+image: gradle:jdk11
+
+stages:
+  - check
+  - test
+  - build
+
+before_script:
+  - export GRADLE_USER_HOME=`pwd`/.gradle
+
+cache:
+  key: gradle-6.0
+  paths:
+    - .gradle
+
+check:
+  stage: check
+  script:
+    - gradle check
+
+test:
+  stage: test
+  script:
+    - gradle test
+
+build:
+  stage: build
+  script:
+    - gradle assemble
+
+after_script:
+  - echo "End CI"

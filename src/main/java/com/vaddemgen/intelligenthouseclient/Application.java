@@ -2,30 +2,31 @@ package com.vaddemgen.intelligenthouseclient;
 
 import com.vaddemgen.intelligenthouseclient.socket.IntelligentHouseClientSocketServer;
 import java.io.IOException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public final class Application {
 
-  private final static Logger LOGGER = LoggerFactory.getLogger(Application.class);
-
+  /**
+   * Application entry point.
+   */
   public static void main(String[] args) {
 
     try {
       IntelligentHouseClientSocketServer.start(7007);
 
-      LOGGER.info("Enter 'q' to exit");
+      log.info("Enter 'q' to exit");
 
       //noinspection StatementWithEmptyBody
       while (System.in.read() != 'q') {
       }
     } catch (Exception e) {
-      LOGGER.error(e.getMessage(), e);
+      log.error(e.getMessage(), e);
 
       try {
         IntelligentHouseClientSocketServer.shutdownAndAwaitTermination();
       } catch (IOException e2) {
-        LOGGER.error(e2.getMessage(), e2);
+        log.error(e2.getMessage(), e2);
       }
 
       System.exit(-1);

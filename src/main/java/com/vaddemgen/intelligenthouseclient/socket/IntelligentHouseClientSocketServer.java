@@ -11,13 +11,10 @@ import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public final class IntelligentHouseClientSocketServer {
-
-  private final static Logger LOGGER = LoggerFactory
-      .getLogger(IntelligentHouseClientSocketServer.class);
 
   private static ServerSocket serverSocket;
   private static ExecutorService executorService;
@@ -29,13 +26,16 @@ public final class IntelligentHouseClientSocketServer {
   private IntelligentHouseClientSocketServer() {
   }
 
+  /**
+   * Starts the client at the provided {@code port}.
+   */
   public static void start(int port)
       throws IOException, UnsupportedBusNumberException, PlatformAlreadyAssignedException {
     bme280Service = Bme280Service.startService();
     serverSocket = new ServerSocket(port);
     executorService = Executors.newCachedThreadPool();
 
-    LOGGER.info("SOCKET_SERVER: The socket server started at port {}", port);
+    log.info("SOCKET_SERVER: The socket server started at port {}", port);
 
     initBme280Logger(bme280Service);
 
@@ -45,48 +45,51 @@ public final class IntelligentHouseClientSocketServer {
         while (true) {
           Socket clientSocket = serverSocket.accept();
 
-          LOGGER.info("SOCKET_SERVER: Caught a client {}",
+          log.info("SOCKET_SERVER: Caught a client {}",
               clientSocket.getRemoteSocketAddress());
 
           executorService.submit(new Bme280Channel(clientSocket, bme280Service));
         }
       } catch (Exception e) {
-        LOGGER.error("SOCKET_SERVER: Caught an exception.", e);
+        log.error("SOCKET_SERVER: Caught an exception.", e);
         executorService.shutdown();
       }
     });
   }
 
   private static void initBme280Logger(Bme280Service bme280Service) {
-    bme280Service.subscribe(value -> LOGGER.info(
+    bme280Service.subscribe(value -> log.info(
         "\nBME 280 DATA:\n"
             + " - Temperature in Celsius : {},\n"
             + " - Temperature in Fahrenheit : {},\n"
             + " - Pressure : {},\n"
             + " - Relative Humidity : {}",
-        String.format("%.2f C", value.getCTemp()),
-        String.format("%.2f F", value.getFTemp()),
+        String.format("%.2f C", value.getCelsiusTemp()),
+        String.format("%.2f F", value.getFahrenheitTemp()),
         String.format("%.2f hPa", value.getPressure()),
         String.format("%.2f %% RH", value.getHumidity())
     ));
   }
 
+  /**
+   * Shutdowns the client.
+   */
   public static void shutdownAndAwaitTermination() throws IOException {
     shutdownExecutorService();
     if (nonNull(serverSocket)) {
       serverSocket.close();
-      LOGGER.info("SOCKET_SERVER: sockets was closed.");
+      log.info("SOCKET_SERVER: sockets was closed.");
     }
     if (nonNull(bme280Service)) {
       bme280Service.shutdownServiceAndAwaitTermination();
-      LOGGER.info("SOCKET_SERVER: Stopped BME280 Service.");
+      log.info("SOCKET_SERVER: Stopped BME280 Service.");
     }
   }
 
   private static void shutdownExecutorService() {
     if (nonNull(executorService)) {
       executorService.shutdown();
-      LOGGER.warn("SOCKET_SERVER: "
+      log.warn("SOCKET_SERVER: "
           + "Awaiting service termination up to 2 minutes.");
       try {
         if (!executorService.awaitTermination(1, TimeUnit.MINUTES)) {
@@ -103,13 +106,13 @@ public final class IntelligentHouseClientSocketServer {
     executorService.shutdownNow();
     try {
       if (!executorService.awaitTermination(1, TimeUnit.MINUTES)) {
-        LOGGER.warn("SOCKET_SERVER: "
+        log.warn("SOCKET_SERVER: "
             + "The executor service didn't terminate.");
       } else {
-        LOGGER.info("SOCKET_SERVER: executor service stopped.");
+        log.info("SOCKET_SERVER: executor service stopped.");
       }
     } catch (InterruptedException e) {
-      LOGGER.warn("SOCKET_SERVER: "
+      log.warn("SOCKET_SERVER: "
           + "The executor service didn't terminate.", e);
       Thread.currentThread().interrupt();
     }
