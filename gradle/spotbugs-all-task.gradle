@@ -1,0 +1,7 @@
+task spotbugsAll {
+  group 'verification'
+  description 'Executes the spotbugsMain and spotbugsTest tasks.'
+  dependsOn 'spotbugsMain'
+  dependsOn 'spotbugsTest'
+}
+check.dependsOn 'spotbugsAll'

@@ -25,11 +25,11 @@ public final class Bme280Service {
   private static final Logger LOGGER = LoggerFactory.getLogger(Bme280Service.class);
   private static final Duration WAITING_TIME = Duration.ofMinutes(1);
 
-  private I2CDevice i2CDevice;
 
-  private ExecutorService executorService = Executors.newSingleThreadExecutor();
+  private transient I2CDevice i2CDevice;
+  private transient ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-  private Queue<Consumer<Bme280Value>> subscribers = new ArrayBlockingQueue<>(10);
+  private transient Queue<Consumer<Bme280Value>> subscribers = new ArrayBlockingQueue<>(10);
 
   /**
    * Don't let anyone to instantiate this class.
@@ -111,13 +111,11 @@ public final class Bme280Service {
       }
     } catch (InterruptedException e) {
       subscribers.clear();
-      subscribers = null;
       LOGGER.warn("BME280_SERVICE: "
           + "The executor service didn't terminate.", e);
       Thread.currentThread().interrupt();
     }
     subscribers.clear();
-    subscribers = null;
   }
 
   public void unsubscribe(Consumer<Bme280Value> subscriber) {

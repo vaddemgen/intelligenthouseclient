@@ -1,80 +1,56 @@
-import com.github.spotbugs.SpotBugsTask
+import com.github.spotbugs.snom.SpotBugsTask
 
 plugins {
   id 'java'
-  id 'com.github.spotbugs' version "2.0.1"
-  id "com.github.johnrengelman.shadow" version "5.2.0"
+  id 'com.github.spotbugs' version '4.0.1'
+  id 'com.github.johnrengelman.shadow' version '5.2.0'
+  id 'pmd'
 }
 
-apply plugin: 'checkstyle'
+apply from: rootProject.file('gradle/checkstyle.gradle')
+apply from: rootProject.file('gradle/spotbugs-all-task.gradle')
+apply from: rootProject.file('gradle/install-git-hooks.gradle')
 
 group 'com.vaddemgen'
 version '1.0.0-alpha.2'
 
-sourceCompatibility = 11
+sourceCompatibility = 1.8
 
 ext {
   // https://mvnrepository.com/artifact/com.pi4j/pi4j-core
   pi4jVersion = '1+'
-
-  // https://mvnrepository.com/artifact/com.google.code.gson/gson
-  gsonVersion = '2+'
-
-  // https://mvnrepository.com/artifact/ch.qos.logback/logback-core
-  // https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
-  logbackVersion = '1+'
-
-  // https://mvnrepository.com/artifact/org.jetbrains/annotations
-  jetbrainsVersion = '18+'
-
   // https://mvnrepository.com/artifact/org.projectlombok/lombok
   lombokVersion = '1+'
-
-  // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
-  // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine
-  junitJupiterVersion = '5+'
-
-  // https://mvnrepository.com/artifact/org.junit.platform/junit-platform-launcher
-  junitPlatformLauncher = '1+'
+  // https://mvnrepository.com/artifact/com.google.code.gson/gson
+  gsonVersion = '2+'
+  // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
+  apacheCommonsLang3Version = '3+'
+  // https://mvnrepository.com/artifact/com.google.dagger/dagger
+  daggerVersion = '2+'
+  // https://mvnrepository.com/artifact/org.spockframework/spock-bom
+  spockBomVersion = '2.0-M2-groovy-3.0'
+  // https://mvnrepository.com/artifact/org.codehaus.groovy/groovy-bom
+  groovyBomVersion = '3.0.2'
 }
 
-checkstyle {
-  toolVersion '8.26'
-  configFile file("config/checkstyle/google_checks.xml")
-}
-checkstyleMain {
-  source ='src/main/java'
-}
-checkstyleTest {
-  source ='src/test/java'
-}
-
-tasks.withType(Checkstyle).each { checkstyleTask ->
-  checkstyleTask.doLast {
-    reports.all { report ->
-      def outputFile = report.destination
-      if (outputFile.exists() && outputFile.text.contains("<error ")) {
-        throw new GradleException("There are Checkstyle warnings. Please fix it.")
-      }
-    }
-  }
-}
-
-spotbugs {
-  ignoreFailures = false
-  toolVersion = "4.0.0-beta4"
-  sourceSets=[sourceSets.main, sourceSets.test]
-  excludeFilter = file("config/findbugs/excludeFilter.xml")
-  reportsDir = file("$project.buildDir/reports/spotbugs")
-  effort = "max"
-}
-
+/* SpotBugs */
 tasks.withType(SpotBugsTask) {
   reports {
-    xml.enabled false
     html.enabled true
   }
 }
+spotbugs {
+  excludeFilter.set(file('config/findbugs/excludeFilter.xml'))
+}
+/* ./SpotBugs */
+
+/* PMD */
+tasks.withType(Pmd) {
+  reports {
+    xml.enabled false
+  }
+}
+/* ./PMD */
 
 jar {
   manifest {
@@ -92,15 +68,23 @@ repositories {
 }
 
 dependencies {
+  implementation platform(project(':platform'))
+
   implementation "com.pi4j:pi4j-core:$pi4jVersion"
   implementation "com.google.code.gson:gson:$gsonVersion"
-  implementation "ch.qos.logback:logback-core:$logbackVersion"
-  implementation "ch.qos.logback:logback-classic:$logbackVersion"
-  implementation "org.jetbrains:annotations:$jetbrainsVersion"
-  compileOnly "org.projectlombok:lombok:$lombokVersion"
-  annotationProcessor "org.projectlombok:lombok:$lombokVersion"
+  implementation "org.apache.commons:commons-lang3:$apacheCommonsLang3Version"
 
-  testRuntimeOnly 'org.junit.platform:junit-platform-launcher:$junitPlatformLauncher'
-  testImplementation "org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion"
-  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion"
+  testImplementation 'org.junit.jupiter:junit-jupiter-params'
+  testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+  testRuntimeOnly 'org.junit.vintage:junit-vintage-engine'
+
+  // Spock
+  testImplementation platform("org.spockframework:spock-bom:$spockBomVersion")
+  testImplementation 'org.spockframework:spock-core'
+
+  testImplementation platform("org.codehaus.groovy:groovy-bom:$groovyBomVersion")
+
+  annotationProcessor "com.google.dagger:dagger-compiler:$daggerVersion",
+      "org.projectlombok:lombok:$lombokVersion"
 }

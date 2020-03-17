@@ -1,0 +1,15 @@
+apply plugin: 'checkstyle'
+
+checkstyle {
+  toolVersion '8.30'
+  configFile file('config/checkstyle/google_checks.xml')
+  ignoreFailures = false
+  maxWarnings = 0
+  configProperties.put("org.checkstyle.google.suppressionfilter.config", configDirectory.get().dir("checkstyle-suppressions.xml").toString())
+}
+
+tasks.withType(Checkstyle) {
+  reports {
+    xml.enabled false
+  }
+}

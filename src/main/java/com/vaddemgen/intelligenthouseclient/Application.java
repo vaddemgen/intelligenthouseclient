@@ -2,6 +2,8 @@ package com.vaddemgen.intelligenthouseclient;
 
 import com.vaddemgen.intelligenthouseclient.socket.IntelligentHouseClientSocketServer;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Scanner;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -12,14 +14,12 @@ public final class Application {
    */
   public static void main(String[] args) {
 
-    try {
+    try (Scanner in = new Scanner(System.in, StandardCharsets.UTF_8.name())) {
       IntelligentHouseClientSocketServer.start(7007);
 
-      log.info("Enter 'q' to exit");
-
-      //noinspection StatementWithEmptyBody
-      while (System.in.read() != 'q') {
-      }
+      do {
+        log.info("Enter 'q' to exit");
+      } while (!in.nextLine().equals("q"));
     } catch (Exception e) {
       log.error(e.getMessage(), e);
 
@@ -28,8 +28,6 @@ public final class Application {
       } catch (IOException e2) {
         log.error(e2.getMessage(), e2);
       }
-
-      System.exit(-1);
     }
   }
 }

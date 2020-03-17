@@ -3,6 +3,7 @@ package com.vaddemgen.intelligenthouseclient.bme280.util;
 import com.pi4j.io.i2c.I2CDevice;
 import java.io.IOException;
 
+@SuppressWarnings("PMD")
 public final class Bme280Utils {
 
   private Bme280Utils() {
