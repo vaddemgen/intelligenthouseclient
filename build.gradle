@@ -12,9 +12,9 @@ apply from: rootProject.file('gradle/spotbugs-all-task.gradle')
 apply from: rootProject.file('gradle/install-git-hooks.gradle')
 
 group 'com.vaddemgen'
-version '1.0.0-alpha.2'
+version '1.0.0-alpha.3'
 
-sourceCompatibility = 1.8
+sourceCompatibility = 11
 
 ext {
   // https://mvnrepository.com/artifact/com.pi4j/pi4j-core
@@ -26,7 +26,7 @@ ext {
   // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
   apacheCommonsLang3Version = '3+'
   // https://mvnrepository.com/artifact/com.google.dagger/dagger
-  daggerVersion = '2+'
+  daggerVersion = '2.50'
   // https://mvnrepository.com/artifact/org.spockframework/spock-bom
   spockBomVersion = '2.0-M2-groovy-3.0'
   // https://mvnrepository.com/artifact/org.codehaus.groovy/groovy-bom
@@ -74,10 +74,15 @@ dependencies {
   implementation "com.google.code.gson:gson:$gsonVersion"
   implementation "org.apache.commons:commons-lang3:$apacheCommonsLang3Version"
 
+  // https://mvnrepository.com/artifact/org.apache.kafka/kafka-clients
+  implementation 'org.apache.kafka:kafka-clients:3.3.1'
+
   testImplementation 'org.junit.jupiter:junit-jupiter-params'
   testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
   testRuntimeOnly 'org.junit.vintage:junit-vintage-engine'
+
+  implementation "com.google.dagger:dagger:$daggerVersion"
 
   // Spock
   testImplementation platform("org.spockframework:spock-bom:$spockBomVersion")

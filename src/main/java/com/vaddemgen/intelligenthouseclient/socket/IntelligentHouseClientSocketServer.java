@@ -5,15 +5,19 @@ import static java.util.Objects.nonNull;
 import com.pi4j.io.i2c.I2CFactory.UnsupportedBusNumberException;
 import com.pi4j.platform.PlatformAlreadyAssignedException;
 import com.vaddemgen.intelligenthouseclient.bme280.Bme280Service;
+import com.vaddemgen.intelligenthouseclient.bme280.PlatformOptions;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class IntelligentHouseClientSocketServer {
 
   private static ServerSocket serverSocket;
@@ -21,17 +25,12 @@ public final class IntelligentHouseClientSocketServer {
   private static Bme280Service bme280Service;
 
   /**
-   * Don't let anyone to instantiate this class.
-   */
-  private IntelligentHouseClientSocketServer() {
-  }
-
-  /**
    * Starts the client at the provided {@code port}.
    */
-  public static void start(int port)
+  public static void start(int port, PlatformOptions options)
       throws IOException, UnsupportedBusNumberException, PlatformAlreadyAssignedException {
-    bme280Service = Bme280Service.startService();
+    bme280Service = new Bme280Service(options);
+    bme280Service.launch();
     serverSocket = new ServerSocket(port);
     executorService = Executors.newCachedThreadPool();
 
@@ -81,7 +80,7 @@ public final class IntelligentHouseClientSocketServer {
       log.info("SOCKET_SERVER: sockets was closed.");
     }
     if (nonNull(bme280Service)) {
-      bme280Service.shutdownServiceAndAwaitTermination();
+      bme280Service.close();
       log.info("SOCKET_SERVER: Stopped BME280 Service.");
     }
   }
