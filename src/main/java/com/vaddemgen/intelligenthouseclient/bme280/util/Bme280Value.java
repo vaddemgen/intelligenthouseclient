@@ -10,10 +10,10 @@ import lombok.Getter;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Bme280Value {
 
-  private final double celsiusTemp;
-  private final double fahrenheitTemp;
-  private final double pressure;
-  private final double humidity;
+  private final float celsiusTemp;
+  private final float fahrenheitTemp;
+  private final float pressure;
+  private final float humidity;
 
   @Override
   public String toString() {

@@ -2,9 +2,11 @@ import com.github.spotbugs.snom.SpotBugsTask
 
 plugins {
   id 'java'
-  id 'com.github.spotbugs' version '4.0.1'
-  id 'com.github.johnrengelman.shadow' version '5.2.0'
+  id 'com.github.spotbugs' version '6.0.12'
+  id 'com.github.johnrengelman.shadow' version '8.1.1'
   id 'pmd'
+  id 'org.springframework.boot' version '3.2.5'
+  id 'io.spring.dependency-management' version '1.1.4'
 }
 
 apply from: rootProject.file('gradle/checkstyle.gradle')
@@ -12,9 +14,9 @@ apply from: rootProject.file('gradle/spotbugs-all-task.gradle')
 apply from: rootProject.file('gradle/install-git-hooks.gradle')
 
 group 'com.vaddemgen'
-version '1.0.0-alpha.3'
+version '1.0.0-alpha.5'
 
-sourceCompatibility = 11
+sourceCompatibility = 17
 
 ext {
   // https://mvnrepository.com/artifact/com.pi4j/pi4j-core
@@ -25,8 +27,6 @@ ext {
   gsonVersion = '2+'
   // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
   apacheCommonsLang3Version = '3+'
-  // https://mvnrepository.com/artifact/com.google.dagger/dagger
-  daggerVersion = '2.50'
   // https://mvnrepository.com/artifact/org.spockframework/spock-bom
   spockBomVersion = '2.0-M2-groovy-3.0'
   // https://mvnrepository.com/artifact/org.codehaus.groovy/groovy-bom
@@ -45,10 +45,9 @@ spotbugs {
 /* ./SpotBugs */
 
 /* PMD */
-tasks.withType(Pmd) {
-  reports {
-    xml.enabled false
-  }
+pmd {
+  consoleOutput = true
+  toolVersion = "6.21.0"
 }
 /* ./PMD */
 
@@ -58,8 +57,11 @@ jar {
         'Main-Class': 'com.vaddemgen.intelligenthouseclient.Application'
     )
   }
-  from {
-    configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+}
+
+configurations {
+  compileOnly {
+    extendsFrom annotationProcessor
   }
 }
 
@@ -70,6 +72,9 @@ repositories {
 dependencies {
   implementation platform(project(':platform'))
 
+  implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+  implementation 'org.springframework.kafka:spring-kafka'
+
   implementation "com.pi4j:pi4j-core:$pi4jVersion"
   implementation "com.google.code.gson:gson:$gsonVersion"
   implementation "org.apache.commons:commons-lang3:$apacheCommonsLang3Version"
@@ -77,12 +82,17 @@ dependencies {
   // https://mvnrepository.com/artifact/org.apache.kafka/kafka-clients
   implementation 'org.apache.kafka:kafka-clients:3.3.1'
 
+  // https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc
+  implementation 'org.xerial:sqlite-jdbc:3.45.3.0'
+  // https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-community-dialects
+  implementation 'org.hibernate.orm:hibernate-community-dialects:6.5.0.Final'
+
   testImplementation 'org.junit.jupiter:junit-jupiter-params'
   testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
   testRuntimeOnly 'org.junit.vintage:junit-vintage-engine'
 
-  implementation "com.google.dagger:dagger:$daggerVersion"
+  annotationProcessor "org.projectlombok:lombok:$lombokVersion"
 
   // Spock
   testImplementation platform("org.spockframework:spock-bom:$spockBomVersion")
@@ -90,6 +100,10 @@ dependencies {
 
   testImplementation platform("org.codehaus.groovy:groovy-bom:$groovyBomVersion")
 
-  annotationProcessor "com.google.dagger:dagger-compiler:$daggerVersion",
-      "org.projectlombok:lombok:$lombokVersion"
+  testImplementation 'org.springframework.boot:spring-boot-starter-test'
+  testImplementation 'org.springframework.kafka:spring-kafka-test'
+}
+
+tasks.named('test') {
+  useJUnitPlatform()
 }

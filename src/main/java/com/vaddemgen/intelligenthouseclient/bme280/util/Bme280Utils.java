@@ -142,10 +142,10 @@ public final class Bme280Utils {
     }
 
     return Bme280Value.builder()
-        .celsiusTemp(cTemp)
-        .fahrenheitTemp(fTemp)
-        .pressure(pressure)
-        .humidity(humidity)
+        .celsiusTemp((float) cTemp)
+        .fahrenheitTemp((float) fTemp)
+        .pressure((float) pressure)
+        .humidity((float) humidity)
         .build();
   }
 }

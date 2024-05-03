@@ -1,0 +1,20 @@
+app:
+  platform: RASPBERRYPI
+  bme280:
+    bus: 1
+    address: 0x76
+    updateFrequency: PT1M
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    generate-ddl: on
+    show-sql: false
+  datasource:
+    url: "jdbc:sqlite:iot.db"
+
+hibernate:
+  dialect: org.hibernate.community.dialect.SQLiteDialect
+  username:
+  password:
